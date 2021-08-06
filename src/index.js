@@ -2,30 +2,31 @@ import $ from 'jquery';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/styles.css';
+import WeatherService from './weather-service.js';
+
+function clearFields() {
+  $('#location').val("");
+  $('.showErrors').text("");
+  $('.showHumidity').text("");
+  $('.showTemp').text("");
+}
+
+function getElements(response) {
+  if (response.main) {
+    $('.showHumidity').text(`The humidity in ${response.name} is ${response.main.humidity}%`);
+    $('.showTemp').text(`The temperature in Kelvins is ${response.main.temp} degrees.`);
+  } else {
+    $('.showErrors').text(`There was an error: ${response.message}`);
+  }
+}
 
 $(document).ready(function() {
-  console.log(process.env.API_KEY);
   $('#weatherLocation').click(function() {
-    const city = $('#location').val();
-    $('#location').val("");
-
-    let request = new XMLHttpRequest();
-    console.log(process.env.API_KEY);
-    const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.API_KEY}`;
-
-    request.onreadystatechange = function() {
-      if (this.readyState === 4 && this.status === 200) {
-        const response = JSON.parse(this.responseText);
+    let city = $('#location').val();
+    clearFields();
+    WeatherService.getWeather(city)
+      .then(function(response) {
         getElements(response);
-      }
-    };
-
-    request.open("GET", url, true);
-    request.send();
-
-    function getElements(response) {
-      $('.showHumidity').text(`The humidity in ${city} is ${response.main.humidity}%`);
-      $('.showTemp').text(`The temperature in Kelvins is ${response.main.temp} degrees.`);
-    }
+      });
   });
 });
